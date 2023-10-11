@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins-server
+  template:
+    metadata:
+      labels:
+        app: jenkins-server
+    spec:
+      securityContext:
+            fsGroup: 1000
+            runAsUser: 1000
+      serviceAccountName: jenkins-admin
+      containers:
+        - name: jenkins
+          image: artifactory.dsv.com/dockerhub-remote/jenkins/jenkins
+          # JENKINS_UC=https://updates.jenkins.io
+          # JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
+          # JENKINS_INCREMENTALS_REPO_MIRROR=https://repo.jenkins-ci.org/incrementals
+          env:
+          - name: JENKINS_UC
+            value: ""
+          - name: JENKINS_UC_EXPERIMENTAL              
+            value: ""
+          - name: JENKINS_UC_DOWNLOAD
+            value: ""
+          - name: JENKINS_INCREMENTALS_REPO_MIRROR
+            value: ""
+          - name: "JAVA_OPTS"
+            value: "-Dlogging.level.root=TRACE -Djenkins.install.runSetupWizard=false"
+          - name: JENKINS_OPTS
+            value: "--httpPort=9090 --prefix=/jenkins"
+          resources:
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+            requests:
+              memory: "500Mi"
+              cpu: "500m"
+          ports:
+            - name: httpport
+              containerPort: 9090
+            - name: jnlpport
+              containerPort: 50000
+          livenessProbe:
+            httpGet:
+              path: "/jenkins/login"
+              port: 9090
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: "/jenkins/login"
+              port: 9090
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 30
+            failureThreshold: 3
+          volumeMounts:
+            - name: jenkins-data
+              mountPath: /var/jenkins_home         
+          # command: ["/bin/sh", "-c", "while true; do echo hello; sleep 10000; done"]    
+      volumes:
+        - name: jenkins-data
+          persistentVolumeClaim:
+              claimName: jenkins-pvc

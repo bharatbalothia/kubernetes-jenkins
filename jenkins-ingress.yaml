@@ -1,0 +1,59 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:        
+    kubernetes.io/ingress.class: nginx
+    # nginx.ingress.kubernetes.io/use-regex: "true"
+    # nginx.ingress.kubernetes.io/rewrite-target: /$2/
+    # nginx.ingress.kubernetes.io/app-root: /
+  name: jenkins-ingress-jenkins
+spec:
+  rules:
+  - host: si.aks-0326dev-p1x6.az-weu01.hcp.dsv.com
+    http:
+      paths:
+      - backend:
+          service:
+            name: jenkins-service
+            port: 
+              name: http
+        # path: /jenkins(/|$)(.*)
+        path: /jenkins
+        pathType: Prefix
+        
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   annotations:        
+#     kubernetes.io/ingress.class: nginx
+#     # nginx.ingress.kubernetes.io/use-regex: "true"
+#   name: jenkins-ingress-root
+# spec:
+#   rules:
+#   - host: si.aks-0326dev-p1x6.az-weu01.hcp.dsv.com
+#     http:
+#       paths:
+#       - backend:
+#           service:
+#             name: jenkins-service
+#             port: 
+#               name: http
+#         path: /i18n/
+#         pathType: Prefix
+#       - backend:
+#           service:
+#             name: jenkins-service
+#             port: 
+#               name: http
+#         path: /adjuncts/
+#         pathType: Prefix
+#       - backend:
+#           service:
+#             name: jenkins-service
+#             port: 
+#               name: http
+#         path: /static/
+#         pathType: Prefix
+        
